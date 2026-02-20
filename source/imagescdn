@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# 定义基础配置
+LOCAL_IMAGES_DIR="."  # 本地 images 目录路径（相对/绝对路径均可）
+CDN_BASE_URL="https://cdn.jsdelivr.net/gh/smallrain123/images/source/images"
+OUTPUT_FILE="cdn_links.txt"  # 生成的链接保存到这个文件
+
+# 检查本地目录是否存在
+if [ ! -d "$LOCAL_IMAGES_DIR" ]; then
+    echo "错误：本地目录 $LOCAL_IMAGES_DIR 不存在！"
+    exit 1
+fi
+
+# 清空输出文件（避免重复内容）
+> "$OUTPUT_FILE"
+
+echo "开始生成 CDN 链接，本地目录：$LOCAL_IMAGES_DIR"
+echo "生成的链接将保存到：$OUTPUT_FILE"
+echo "----------------------------------------"
+
+# 遍历本地 images 目录下的所有文件（递归）
+# -type f：只处理文件（排除目录）
+# -not -path "*/\.*"：排除隐藏文件（如 .DS_Store、.gitignore 等）
+find "$LOCAL_IMAGES_DIR" -type f -not -path "*/\.*" | while read -r file_path; do
+    # 去掉本地目录前缀，得到文件相对路径
+    relative_path="${file_path#$LOCAL_IMAGES_DIR/}"
+    
+    # 拼接完整的 CDN 链接（处理路径中的空格等特殊字符）
+    cdn_link="${CDN_BASE_URL}${relative_path}"
+    
+    # 输出到控制台并写入文件
+    echo "$cdn_link"
+    echo "$cdn_link" >> "$OUTPUT_FILE"
+done
+
+echo "----------------------------------------"
+echo "链接生成完成！共生成 $(wc -l < "$OUTPUT_FILE") 个有效链接"
+echo "文件路径：$(realpath "$OUTPUT_FILE")"
